@@ -1,0 +1,27 @@
+services:
+
+  server:
+    build: ./server
+    ports:
+      - "50051:50051"
+
+  client-python:
+    build: ./client-python
+    depends_on:
+      - server
+
+  envoy:
+    build: ./envoy
+    ports:
+      - "8080:8080"
+    depends_on:
+      - server
+
+  web:
+    image: nginx:alpine
+    volumes:
+      - ./client-web:/usr/share/nginx/html
+    ports:
+      - "8000:80"
+    depends_on:
+      - envoy

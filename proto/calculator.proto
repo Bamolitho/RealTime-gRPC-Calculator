@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package calculator;
+
+// ---- Service ----
+
+service Calculator {
+
+  // Opérations arithmétiques (Unary RPC)
+  rpc Add (Numbers) returns (Result);
+  rpc Subtract (Numbers) returns (Result);
+  rpc Multiply (Numbers) returns (Result);
+  rpc Divide (Numbers) returns (Result);
+
+  // Streaming : le serveur envoie plusieurs résultats en temps réel
+  rpc StreamCalculations (StreamRequest) returns (stream Result);
+}
+
+// ---- Messages ----
+
+message Numbers {
+  double num1 = 1;
+  double num2 = 2;
+}
+
+message StreamRequest {
+  double base = 1;        // valeur de départ
+  int32 count = 2;        // nombre de résultats à envoyer
+  string operation = 3;   // "add", "sub", "mul", "div"
+  double operand = 4;     // valeur appliquée à chaque étape
+}
+
+message Result {
+  double value = 1;       // résultat
+  string operation = 2;   // nom de l'opération
+  int32 step = 3;         // numéro de l'itération dans le stream
+}
