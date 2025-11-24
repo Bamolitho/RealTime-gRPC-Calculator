@@ -1,17 +1,26 @@
 services:
 
   server:
-    build: ./server
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    container_name: grpc-server
     ports:
       - "50051:50051"
 
   client-python:
-    build: ./client-python
+    build:
+      context: .
+      dockerfile: client-python/Dockerfile
+    container_name: grpc-client-python
     depends_on:
       - server
 
   envoy:
-    build: ./envoy
+    build:
+      context: .
+      dockerfile: envoy/Dockerfile
+    container_name: grpc-envoy
     ports:
       - "8080:8080"
     depends_on:
@@ -19,9 +28,11 @@ services:
 
   web:
     image: nginx:alpine
+    container_name: grpc-web-client
     volumes:
-      - ./client-web:/usr/share/nginx/html
+      - ./client-web:/usr/share/nginx/html:ro
     ports:
       - "8000:80"
     depends_on:
       - envoy
+
