@@ -1,9 +1,6 @@
-# ==============================
-# Dockerfile - envoy (gRPC-Web proxy)
-# ==============================
 FROM envoyproxy/envoy:v1.29-latest
 
-COPY envoy.yaml /etc/envoy/envoy.yaml
+COPY envoy/envoy.yaml /etc/envoy/envoy.yaml
 
 EXPOSE 8080
 

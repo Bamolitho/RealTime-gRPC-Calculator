@@ -1,5 +1,4 @@
 services:
-
   server:
     build:
       context: .
@@ -7,6 +6,8 @@ services:
     container_name: grpc-server
     ports:
       - "50051:50051"
+    networks:
+      - grpc-network
 
   client-python:
     build:
@@ -15,6 +16,8 @@ services:
     container_name: grpc-client-python
     depends_on:
       - server
+    networks:
+      - grpc-network
 
   envoy:
     build:
@@ -25,6 +28,8 @@ services:
       - "8080:8080"
     depends_on:
       - server
+    networks:
+      - grpc-network
 
   web:
     image: nginx:alpine
@@ -35,4 +40,9 @@ services:
       - "8000:80"
     depends_on:
       - envoy
+    networks:
+      - grpc-network
 
+networks:
+  grpc-network:
+    driver: bridge

@@ -1,46 +1,48 @@
-// Les classes sont déjà disponibles globalement via les scripts chargés
-const { CalculatorClient } = proto.calculator;
-const { StreamRequest, AddRequest } = proto.calculator;
+// Vérifier que tout est chargé
+console.log('Checking dependencies...');
+console.log('grpc available:', typeof grpc !== 'undefined');
+console.log('proto available:', typeof proto !== 'undefined');
 
-// Créer le client gRPC-Web pointant vers Envoy
+if (typeof proto === 'undefined' || typeof proto.calculator === 'undefined') {
+  console.error('Proto files not loaded correctly!');
+  document.getElementById('output').innerHTML = 
+    '<li style="background: #ffebee; border-color: #f44336;"> Error: Proto files not loaded. Check console for details.</li>';
+}
+
+// Créer le client gRPC-Web
+const { CalculatorClient } = proto.calculator;
+const { StreamRequest, Numbers } = proto.calculator;
+
 const client = new CalculatorClient('http://localhost:8080', null, null);
 
 // Fonction pour démarrer le streaming
 document.getElementById('stream').onclick = () => {
   const output = document.getElementById('output');
   
-  // Récupérer les valeurs des inputs
   const base = parseFloat(document.getElementById('base').value);
   const operand = parseFloat(document.getElementById('operand').value);
   const operation = document.getElementById('operation').value;
   const count = parseInt(document.getElementById('count').value);
   
-  // Créer la requête
   const req = new StreamRequest();
   req.setBase(base);
   req.setCount(count);
   req.setOperation(operation);
   req.setOperand(operand);
   
-  // Ajouter un message de début
   output.innerHTML += `<li style="background: #e7f3ff; border-color: #2196F3;">
-    Starting stream: ${base} ${operation} ${operand} (${count} steps)
+     Starting stream: ${base} ${operation} ${operand} (${count} steps)
   </li>`;
   
-  // Créer le stream
   const stream = client.streamCalculations(req, {});
   
-  // Gérer les données reçues
   stream.on('data', (response) => {
     const step = response.getStep();
     const value = response.getValue();
     output.innerHTML += `<li>Step ${step}: <strong>${value}</strong></li>`;
-    
-    // Auto-scroll vers le bas
     window.scrollTo(0, document.body.scrollHeight);
   });
   
-  // Gérer les erreurs
   stream.on('error', (err) => {
     output.innerHTML += `<li style="background: #ffebee; border-color: #f44336;">
       Error: ${err.message}
@@ -48,7 +50,6 @@ document.getElementById('stream').onclick = () => {
     console.error('Stream error:', err);
   });
   
-  // Gérer la fin du stream
   stream.on('end', () => {
     output.innerHTML += `<li style="background: #e8f5e9; border-color: #4caf50;">
       Stream completed!
@@ -56,25 +57,23 @@ document.getElementById('stream').onclick = () => {
   });
 };
 
-// Fonction pour effacer l'output
 document.getElementById('clear').onclick = () => {
   document.getElementById('output').innerHTML = '';
 };
 
-// Optionnel : tester la connexion avec Add au chargement
+// Test de connexion
 window.onload = () => {
   console.log('gRPC-Web Client loaded');
   
-  // Test de connexion simple
-  const testReq = new AddRequest();
-  testReq.setA(5);
-  testReq.setB(3);
+  const testReq = new Numbers();
+  testReq.setNum1(5);
+  testReq.setNum2(3);
   
   client.add(testReq, {}, (err, response) => {
     if (err) {
       console.error('Connection test failed:', err);
     } else {
-      console.log('Connection test successful! 5 + 3 =', response.getResult());
+      console.log('Connection test successful! 5 + 3 =', response.getValue());
     }
   });
 };
